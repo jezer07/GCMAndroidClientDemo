@@ -9,15 +9,22 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.provider.ContactsContract;
+import android.provider.ContactsContract.CommonDataKinds.Phone;
+import android.provider.ContactsContract.Profile;
+import android.text.InputType;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -28,20 +35,30 @@ import android.widget.Toast;
 
 public class MainActivity extends Activity {
 	static final String SENDER_ID = "737133065087";
-	
-	
-	Spinner mName;
+
+	SharedPreferences sp;
+	Spinner mSentTo;
 	EditText mMessage;
+	String mName;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.fragment_main);
+		sp = getSharedPreferences(getPackageName(), Context.MODE_PRIVATE);
+
+		if (!sp.contains(Consts.NAME)) {
+
+			newName();
+		}
+
+		mName = sp.getString(Consts.NAME, null);
+
 		GCMRegistrarCompat.checkDevice(this);
 		if (BuildConfig.DEBUG) {
 			GCMRegistrarCompat.checkManifest(this);
 		}
-		
+
 		final String regId = GCMRegistrarCompat.getRegistrationId(this);
 		if (regId.length() == 0) {
 			new RegisterTask(this).execute(SENDER_ID);
@@ -49,79 +66,97 @@ public class MainActivity extends Activity {
 			Log.d(getClass().getSimpleName(), "Existing registration: " + regId);
 			Toast.makeText(this, regId, Toast.LENGTH_LONG).show();
 		}
-	
-			mName = (Spinner)findViewById(R.id.spinner1);
-			mMessage = (EditText)findViewById(R.id.message);
-		
-		
-		
+
+		mSentTo = (Spinner) findViewById(R.id.spinner1);
+		mMessage = (EditText) findViewById(R.id.message);
+
 	}
 
 	public void onSend(View v) {
-		/*final String regId = GCMRegistrarCompat.getRegistrationId(this);
-		if (regId.length() == 0) {
-			new RegisterTask(this).execute(SENDER_ID);
-		} else {
-			Log.d(getClass().getSimpleName(), "Existing registration: " + regId);
-			Toast.makeText(this, regId, Toast.LENGTH_LONG).show();
-		}*/
+		/*
+		 * final String regId = GCMRegistrarCompat.getRegistrationId(this); if
+		 * (regId.length() == 0) { new RegisterTask(this).execute(SENDER_ID); }
+		 * else { Log.d(getClass().getSimpleName(), "Existing registration: " +
+		 * regId); Toast.makeText(this, regId, Toast.LENGTH_LONG).show(); }
+		 */
 		new AsyncTask<Void, Void, Void>() {
-			String name;
+			String sendTo;
 			String message;
-			
+
 			protected void onPreExecute() {
-				
-				name =  mName.getSelectedItem().toString();
+
+				sendTo = mSentTo.getSelectedItem().toString();
 				message = mMessage.getText().toString();
-				Toast.makeText(MainActivity.this, "Sending", Toast.LENGTH_SHORT).show();
-				
-				Log.d("values","name =  "+name);
-				Log.d("values","message =  "+message);
+				Toast.makeText(MainActivity.this, "Sending", Toast.LENGTH_SHORT)
+						.show();
+
+				Log.d("values", "name =  " + sendTo);
+				Log.d("values", "message =  " + message);
 			};
-			
-		
-			
+
 			@Override
 			protected Void doInBackground(Void... params) {
 				HttpClient httpclient = new DefaultHttpClient();
-			    HttpPost httppost = new HttpPost("http://192.168.63.175:3000/message/send_push/");
-			    
-			    
+				HttpPost httppost = new HttpPost(
+						"http://192.168.63.175:3000/message/send_push/");
 
-			    try {
-			        // Add your data
-			        List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(3);
-			        nameValuePairs.add(new BasicNameValuePair("user", name));
-			        nameValuePairs.add(new BasicNameValuePair("message", message));
-			        nameValuePairs.add(new BasicNameValuePair("sender", GCMRegistrarCompat.getRegistrationId(MainActivity.this)));
-			        httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+				try {
+					// Add your data
+					List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(
+							3);
+					nameValuePairs.add(new BasicNameValuePair("user", sendTo));
+					nameValuePairs.add(new BasicNameValuePair("message",
+							message));
+					nameValuePairs.add(new BasicNameValuePair("sender",
+							GCMRegistrarCompat
+									.getRegistrationId(MainActivity.this)));
+					httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
 
-			        // Execute HTTP Post Request
-			        HttpResponse response = httpclient.execute(httppost);
-			        
-			        
-			 
-			        
-			    } catch (ClientProtocolException e) {
-			        // TODO Auto-generated catch block
-			    } catch (IOException e) {
-			        // TODO Auto-generated catch block
-			    }
+					// Execute HTTP Post Request
+					HttpResponse response = httpclient.execute(httppost);
+
+				} catch (ClientProtocolException e) {
+					// TODO Auto-generated catch block
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+				}
 				return null;
 			}
-			
+
 		}.execute();
 
-		
-		    // Create a new HttpClient and Post Header
+		// Create a new HttpClient and Post Header
+
+	}
+
+	private void newName() {
+		final String[] SELF_PROJECTION = new String[] { Phone._ID,
+				Phone.DISPLAY_NAME, };
+		Cursor cursor = this.getContentResolver().query(Profile.CONTENT_URI,
+				SELF_PROJECTION, null, null, null);
+		cursor.moveToFirst();
+		String name = cursor.getString(1);
+		sp.edit().putString(Consts.NAME, name).commit();
+		Log.d("NAME",name);
 		
 		
 	}
 
 	private static class RegisterTask extends
 			GCMRegistrarCompat.BaseRegisterTask {
+
+		SharedPreferences sp;
+
 		RegisterTask(Context context) {
 			super(context);
+
+			sp = context.getSharedPreferences(context.getPackageName(),
+					Context.MODE_PRIVATE);
+		}
+
+		@Override
+		protected void onPreExecute() {
+
 		}
 
 		@Override
@@ -129,6 +164,42 @@ public class MainActivity extends Activity {
 			Log.d(getClass().getSimpleName(), "registered as: " + regid);
 			Toast.makeText(context, regid, Toast.LENGTH_LONG).show();
 		}
+
+		@Override
+		protected void sendRegistrationIdToServer(String regid) {
+			// TODO Auto-generated method stub
+			HttpClient httpclient = new DefaultHttpClient();
+			HttpPost httppost = new HttpPost(
+					"http://192.168.63.175:3000/users/");
+
+			// SharedPreferences sp =
+			// context.getSharedPreferences(context.getPackageName(),
+			// Context.MODE_PRIVATE);
+
+			String name = sp.getString(Consts.NAME, null);
+
+			try {
+				// Add your data
+				List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(
+						2);
+				nameValuePairs.add(new BasicNameValuePair("user[username]",
+						name));
+				nameValuePairs
+						.add(new BasicNameValuePair("user[regid]", regid));
+				httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+
+				// Execute HTTP Post Request
+				HttpResponse response = httpclient.execute(httppost);
+				Log.d("status", "" + response.getStatusLine().getStatusCode());
+
+			} catch (ClientProtocolException e) {
+				// TODO Auto-generated catch block
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+			}
+
+		}
+
 	}
 
 	@Override
