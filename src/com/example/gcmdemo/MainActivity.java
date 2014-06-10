@@ -162,7 +162,7 @@ public class MainActivity extends Activity {
 		@Override
 		public void onPostExecute(String regid) {
 			Log.d(getClass().getSimpleName(), "registered as: " + regid);
-			Toast.makeText(context, regid, Toast.LENGTH_LONG).show();
+			//Toast.makeText(context, regid, Toast.LENGTH_LONG).show();
 		}
 
 		@Override
