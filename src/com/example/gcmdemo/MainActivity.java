@@ -15,6 +15,7 @@ import org.apache.http.message.BasicNameValuePair;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
@@ -30,6 +31,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
@@ -40,12 +42,16 @@ public class MainActivity extends Activity {
 	Spinner mSentTo;
 	EditText mMessage;
 	String mName;
+	ListView mMessageList;
+	private BroadcastReceiver receiver;
+
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.fragment_main);
 		sp = getSharedPreferences(getPackageName(), Context.MODE_PRIVATE);
+		
 
 		if (!sp.contains(Consts.NAME)) {
 
@@ -71,14 +77,32 @@ public class MainActivity extends Activity {
 		mMessage = (EditText) findViewById(R.id.message);
 
 	}
+	@Override
+	protected void onResume() {
+		super.onResume();
+		
+		
+	}
+	public String [] getContacts(){
+		new AsyncTask<Void,Void,Void>(){
 
+			@Override
+			protected Void doInBackground(Void... arg0) {
+				// TODO Auto-generated method stub
+				return null;
+			}
+			
+			
+			
+		};
+		
+		
+		
+		
+		return null;
+	}
 	public void onSend(View v) {
-		/*
-		 * final String regId = GCMRegistrarCompat.getRegistrationId(this); if
-		 * (regId.length() == 0) { new RegisterTask(this).execute(SENDER_ID); }
-		 * else { Log.d(getClass().getSimpleName(), "Existing registration: " +
-		 * regId); Toast.makeText(this, regId, Toast.LENGTH_LONG).show(); }
-		 */
+
 		new AsyncTask<Void, Void, Void>() {
 			String sendTo;
 			String message;
@@ -128,6 +152,7 @@ public class MainActivity extends Activity {
 		// Create a new HttpClient and Post Header
 
 	}
+	
 
 	private void newName() {
 		final String[] SELF_PROJECTION = new String[] { Phone._ID,
@@ -162,20 +187,13 @@ public class MainActivity extends Activity {
 		@Override
 		public void onPostExecute(String regid) {
 			Log.d(getClass().getSimpleName(), "registered as: " + regid);
-			//Toast.makeText(context, regid, Toast.LENGTH_LONG).show();
 		}
 
 		@Override
 		protected void sendRegistrationIdToServer(String regid) {
-			// TODO Auto-generated method stub
 			HttpClient httpclient = new DefaultHttpClient();
 			HttpPost httppost = new HttpPost(
 					"http://192.168.63.175:3000/users/");
-
-			// SharedPreferences sp =
-			// context.getSharedPreferences(context.getPackageName(),
-			// Context.MODE_PRIVATE);
-
 			String name = sp.getString(Consts.NAME, null);
 
 			try {
@@ -190,12 +208,11 @@ public class MainActivity extends Activity {
 
 				// Execute HTTP Post Request
 				HttpResponse response = httpclient.execute(httppost);
+				
 				Log.d("status", "" + response.getStatusLine().getStatusCode());
 
 			} catch (ClientProtocolException e) {
-				// TODO Auto-generated catch block
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 			}
 
 		}
