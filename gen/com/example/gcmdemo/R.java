@@ -1456,8 +1456,10 @@ containing a value of this type.
         public static final int ic_plusone_small_off_client=0x7f020071;
         public static final int ic_plusone_standard_off_client=0x7f020072;
         public static final int ic_plusone_tall_off_client=0x7f020073;
-        public static final int powered_by_google_dark=0x7f020074;
-        public static final int powered_by_google_light=0x7f020075;
+        public static final int megaphone=0x7f020074;
+        public static final int powered_by_google_dark=0x7f020075;
+        public static final int powered_by_google_light=0x7f020076;
+        public static final int tincan=0x7f020077;
     }
     public static final class id {
         public static final int RelativeLayout1=0x7f070054;

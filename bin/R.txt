@@ -322,8 +322,10 @@ int drawable ic_plusone_medium_off_client 0x7f020070
 int drawable ic_plusone_small_off_client 0x7f020071
 int drawable ic_plusone_standard_off_client 0x7f020072
 int drawable ic_plusone_tall_off_client 0x7f020073
-int drawable powered_by_google_dark 0x7f020074
-int drawable powered_by_google_light 0x7f020075
+int drawable megaphone 0x7f020074
+int drawable powered_by_google_dark 0x7f020075
+int drawable powered_by_google_light 0x7f020076
+int drawable tincan 0x7f020077
 int id RelativeLayout1 0x7f070054
 int id View1 0x7f070055
 int id action_bar 0x7f07002e

@@ -171,6 +171,7 @@ public class MainActivity extends Activity implements Callback<List<User>> {
 			Log.d("Names", "" + name);
 			names.add(name);
 		}
+		names.add("All");
 
 		ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<String>(this,
 				android.R.layout.simple_spinner_item, names);
@@ -187,6 +188,10 @@ public class MainActivity extends Activity implements Callback<List<User>> {
 			protected void onPreExecute() {
 
 				sendTo = mSentTo.getSelectedItem().toString();
+				
+				
+				
+				
 				message = mMessage.getText().toString();
 				Toast.makeText(MainActivity.this, "Sending", Toast.LENGTH_SHORT)
 						.show();
@@ -203,7 +208,7 @@ public class MainActivity extends Activity implements Callback<List<User>> {
 				try {
 					// Add your data
 					List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(
-							3);
+							4);
 					nameValuePairs.add(new BasicNameValuePair("user", sendTo));
 					nameValuePairs.add(new BasicNameValuePair("message",
 							message));
