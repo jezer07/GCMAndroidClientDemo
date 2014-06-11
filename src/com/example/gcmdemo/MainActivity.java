@@ -2,6 +2,7 @@ package com.example.gcmdemo;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.http.HttpResponse;
@@ -20,6 +21,8 @@ import retrofit.client.Response;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.AsyncTask;
@@ -27,18 +30,24 @@ import android.os.Bundle;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.ContactsContract.Profile;
 import android.util.Log;
+import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Spinner;
+import android.widget.TextView;
+import android.widget.TextView.OnEditorActionListener;
 import android.widget.Toast;
 
+import com.example.gcmdemo.model.PushMessage;
 import com.example.gcmdemo.model.User;
-
-import com.example.gcmdemo.ContactsInterface;
 
 public class MainActivity extends Activity implements Callback<List<User>> {
 	static final String SENDER_ID = "737133065087";
@@ -47,22 +56,43 @@ public class MainActivity extends Activity implements Callback<List<User>> {
 	Spinner mSentTo;
 	EditText mMessage;
 	String mName;
-	ListView mMessageList;
-	private BroadcastReceiver receiver;
+	ListView mMessageListView;
+	
+	
+	List<PushMessage> mPushList;
+	
+	
+	// an action to listen
+	public static final String MESSAGE_SENT_ACTION = "com.example.MESSAGE_RECEIVED_ACTION";
+	// key to extract a text from bundle
+	public static final String MESSAGE_EXTRA = "com.example.MESSAGE_EXTRA";
+
+	
+	
+	private BroadcastReceiver mPushReceiver;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.fragment_main);
+		setContentView(R.layout.activity_main);
+		sp = getSharedPreferences(getPackageName(), Context.MODE_PRIVATE);
+		mPushList = new ArrayList<PushMessage>();
+		
+		mMessageListView = (ListView)findViewById(R.id.listView1);
+		PushMessage dummy = new PushMessage("Hello world", "Barrack Obama", null);
+		mPushList.add(dummy);
+		PushAdapter pa = new PushAdapter(this, mPushList);
+		
+		mMessageListView.setAdapter(pa);
+		
+		
 		RestAdapter restAdapter = new RestAdapter.Builder().setEndpoint(
 				"http://192.168.63.175:3000").build();
-
-		ContactsInterface contacts = restAdapter
-				.create(ContactsInterface.class);
-
+		ContactsInterface contacts = restAdapter.create(ContactsInterface.class);
 		contacts.contacts(this);
 
-		sp = getSharedPreferences(getPackageName(), Context.MODE_PRIVATE);
+		//Check if there's no entry of owner's name on the SharedPreferences
+		//if non, get it from contacts
 		if (!sp.contains(Consts.NAME)) {
 
 			newName();
@@ -70,6 +100,7 @@ public class MainActivity extends Activity implements Callback<List<User>> {
 
 		mName = sp.getString(Consts.NAME, null);
 
+		
 		GCMRegistrarCompat.checkDevice(this);
 		if (BuildConfig.DEBUG) {
 			GCMRegistrarCompat.checkManifest(this);
@@ -80,37 +111,74 @@ public class MainActivity extends Activity implements Callback<List<User>> {
 			new RegisterTask(this).execute(SENDER_ID);
 		} else {
 			Log.d(getClass().getSimpleName(), "Existing registration: " + regId);
-			Toast.makeText(this, regId, Toast.LENGTH_LONG).show();
 		}
 
 		mSentTo = (Spinner) findViewById(R.id.spinner1);
 		mMessage = (EditText) findViewById(R.id.message);
+		mMessage.setOnEditorActionListener(new OnEditorActionListener() {
+			
+			@Override
+			public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+				if (actionId == EditorInfo.IME_ACTION_DONE) {
+                   onSend();
+                    return true;
+                }
+				
+				return false;
+			}
+		});
 
 	}
-
+	
+	
+	
+	@Override
+	protected void onResume() {
+		super.onResume();
+		mPushReceiver = new BroadcastReceiver(){
+			
+			@Override
+			public void onReceive(Context c, Intent i) {
+				Bundle bundle = i.getExtras();
+				String message = bundle.getString("msg");
+				String from = bundle.getString("sender");
+				
+				PushMessage p = new PushMessage(message,from,null);				
+				mPushList.add(0,p);
+				
+				//Collections.reverse(mPushList);
+				((BaseAdapter) mMessageListView.getAdapter()).notifyDataSetChanged(); 
+				
+				
+			}
+			
+		};
+		
+		registerReceiver(mPushReceiver, new IntentFilter(MESSAGE_SENT_ACTION));
+	}
+	// Overridden from CallBack<T>
 	@Override
 	public void failure(RetrofitError exception) {
 		Toast.makeText(this, exception.getMessage(), Toast.LENGTH_LONG).show();
 	}
-
+	
+	// Overridden from CallBack<T>
 	@Override
 	public void success(List<User> c, Response r) {
 		List<String> names = new ArrayList<String>();
 		for (int i = 0; i < c.size(); i++) {
 			String name = c.get(i).toString();
-
 			Log.d("Names", "" + name);
 			names.add(name);
 		}
 
 		ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<String>(this,
 				android.R.layout.simple_spinner_item, names);
-
 		mSentTo.setAdapter(spinnerAdapter);
 
 	}
-
-	public void onSend(View v) {
+	
+	public void onSend() {
 
 		new AsyncTask<Void, Void, Void>() {
 			String sendTo;
@@ -122,7 +190,6 @@ public class MainActivity extends Activity implements Callback<List<User>> {
 				message = mMessage.getText().toString();
 				Toast.makeText(MainActivity.this, "Sending", Toast.LENGTH_SHORT)
 						.show();
-
 				Log.d("values", "name =  " + sendTo);
 				Log.d("values", "message =  " + message);
 			};
@@ -240,7 +307,38 @@ public class MainActivity extends Activity implements Callback<List<User>> {
 		}
 
 	}
+	
+	static class PushAdapter extends ArrayAdapter<PushMessage>{
 
+		List<PushMessage> _pushList;
+		Context c;
+		public PushAdapter(Context context, List<PushMessage> values) {
+			super(context, R.layout.chat_row,values);
+			
+			_pushList = values;
+			c = context;
+		}
+		
+		@Override
+		public View getView(int position, View convertView, ViewGroup parent) {
+			if (convertView == null) {
+		        convertView = LayoutInflater.from(c)
+		          .inflate(R.layout.chat_row, parent, false);
+		    }
+			TextView from = (TextView)convertView.findViewById(R.id.fromTV);
+			TextView message = (TextView)convertView.findViewById(R.id.messageTV);
+			
+			
+			
+			from.setText(_pushList.get(position).getFrom());
+			message.setText(_pushList.get(position).getMessage());
+			
+			
+			
+			return convertView;
+		}
+		
+	}
 
 
 

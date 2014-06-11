@@ -24,34 +24,37 @@ public class GCMIntentService extends GCMBaseIntentServiceCompat {
 	@Override
 	protected void onMessage(Intent message) {
 		dumpEvent("onMessage", message);
-		
+
 		Bundle extras = message.getExtras();
+		//For MainActivity Broadcast Intent
+		Intent broadcastIntent = new Intent();
+		broadcastIntent.setAction(MainActivity.MESSAGE_SENT_ACTION);
+		broadcastIntent.putExtras(extras);
+		sendBroadcast(broadcastIntent);
+
+		// For Notification Intent
 		Intent resultIntent = new Intent(this, MessageActivity.class);
 		resultIntent.putExtras(extras);
-		
-		 PendingIntent resultPendingIntent = PendingIntent.getActivity(this,0,resultIntent,PendingIntent.FLAG_UPDATE_CURRENT);
-		
-		
 
-	
-		 Uri soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-		
-			Notification n = new Notification.Builder(this)
-			.setContentTitle("You have a new message")
-			.setContentText("From: "+ extras.getString("sender"))
-			.setSound(soundUri)
-			.setContentIntent(resultPendingIntent)
-			.setOnlyAlertOnce(true).setSmallIcon(R.drawable.ic_launcher)
-			.setAutoCancel(true).build();
-			
-			n.defaults = Notification.DEFAULT_ALL;
+		PendingIntent resultPendingIntent = PendingIntent.getActivity(this, 0,
+				resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
-	NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+		Uri soundUri = RingtoneManager
+				.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
 
-	notificationManager.notify(0, n);
-		
-	
-		
+		Notification n = new Notification.Builder(this)
+				.setContentTitle("You have a new message")
+				.setContentText("From: " + extras.getString("sender"))
+				.setSound(soundUri).setContentIntent(resultPendingIntent)
+				.setOnlyAlertOnce(true).setSmallIcon(R.drawable.ic_launcher)
+				.setAutoCancel(true).build();
+
+		n.defaults = Notification.DEFAULT_ALL;
+
+		NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+
+		notificationManager.notify(0, n);
+
 	}
 
 	@Override

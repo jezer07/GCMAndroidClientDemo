@@ -4,23 +4,22 @@
     android:layout_height="match_parent" >
 
     <TextView
-        android:id="@+id/textView1"
+        android:id="@+id/fromTV"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
-        android:layout_marginLeft="20dp"
         android:layout_marginTop="20dp"
+        android:textColor="#3366FF"
         android:text="Jezer Crespo" />
 
     <TextView
-        android:id="@+id/textView2"
+        android:id="@+id/messageTV"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBaseline="@+id/textView1"
-        android:layout_alignBottom="@+id/textView1"
-        android:layout_marginLeft="44dp"
-        android:layout_toRightOf="@+id/textView1"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/fromTV"
+        android:layout_marginBottom="20dp"
         android:text="Blahblah akjdlkajdlkajs lkajs dlksaj lkdjsa lkdja slk" />
 
 </RelativeLayout>
