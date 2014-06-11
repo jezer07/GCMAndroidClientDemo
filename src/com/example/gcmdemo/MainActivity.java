@@ -2,7 +2,7 @@ package com.example.gcmdemo;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Calendar;
 import java.util.List;
 
 import org.apache.http.HttpResponse;
@@ -29,6 +29,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.ContactsContract.Profile;
+import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -40,6 +41,7 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -79,8 +81,6 @@ public class MainActivity extends Activity implements Callback<List<User>> {
 		mPushList = new ArrayList<PushMessage>();
 		
 		mMessageListView = (ListView)findViewById(R.id.listView1);
-		PushMessage dummy = new PushMessage("Hello world", "Barrack Obama", null);
-		mPushList.add(dummy);
 		PushAdapter pa = new PushAdapter(this, mPushList);
 		
 		mMessageListView.setAdapter(pa);
@@ -142,8 +142,12 @@ public class MainActivity extends Activity implements Callback<List<User>> {
 				Bundle bundle = i.getExtras();
 				String message = bundle.getString("msg");
 				String from = bundle.getString("sender");
-				
-				PushMessage p = new PushMessage(message,from,null);				
+				String type = bundle.getString("type");
+				Calendar cal = Calendar.getInstance();
+				String time = (String) DateUtils.getRelativeTimeSpanString(cal.getTimeInMillis());
+				Log.d("time",time);
+				Log.d("type",type);
+				PushMessage p = new PushMessage(message,from,type,time);				
 				mPushList.add(0,p);
 				
 				//Collections.reverse(mPushList);
@@ -187,11 +191,7 @@ public class MainActivity extends Activity implements Callback<List<User>> {
 
 			protected void onPreExecute() {
 
-				sendTo = mSentTo.getSelectedItem().toString();
-				
-				
-				
-				
+				sendTo = mSentTo.getSelectedItem().toString();			
 				message = mMessage.getText().toString();
 				Toast.makeText(MainActivity.this, "Sending", Toast.LENGTH_SHORT)
 						.show();
@@ -319,7 +319,6 @@ public class MainActivity extends Activity implements Callback<List<User>> {
 		Context c;
 		public PushAdapter(Context context, List<PushMessage> values) {
 			super(context, R.layout.chat_row,values);
-			
 			_pushList = values;
 			c = context;
 		}
@@ -332,11 +331,22 @@ public class MainActivity extends Activity implements Callback<List<User>> {
 		    }
 			TextView from = (TextView)convertView.findViewById(R.id.fromTV);
 			TextView message = (TextView)convertView.findViewById(R.id.messageTV);
+			TextView time = (TextView)convertView.findViewById(R.id.dateTV);
+			ImageView view = (ImageView)convertView.findViewById(R.id.chat_icon);
 			
 			
+			if(_pushList.get(position).getType().equals("broadcast")){
+				view.setImageResource(R.drawable.megaphone);
+			}else
+				view.setImageResource(R.drawable.tincan);
 			
+			
+			time.setText(_pushList.get(position).getTime());
 			from.setText(_pushList.get(position).getFrom());
 			message.setText(_pushList.get(position).getMessage());
+			
+			
+			
 			
 			
 			

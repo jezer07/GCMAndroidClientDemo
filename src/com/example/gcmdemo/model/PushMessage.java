@@ -8,13 +8,16 @@ public class PushMessage {
 	//private Date received;
 	private String from;
 	private String type;
+	private String time;
 	
-	public PushMessage(String message, String from, String type) {
+	
+	public PushMessage(String message, String from, String type,String time) {
 		super();
 		this.message = message;
 		//this.received = received;
 		this.from = from;
 		this.type = type;
+		this.time=time;
 	}
 
 
@@ -44,6 +47,18 @@ public class PushMessage {
 
 	public void setType(String type) {
 		this.type = type;
+	}
+
+
+
+	public String getTime() {
+		return time;
+	}
+
+
+
+	public void setTime(String time) {
+		this.time = time;
 	}
 
 }
