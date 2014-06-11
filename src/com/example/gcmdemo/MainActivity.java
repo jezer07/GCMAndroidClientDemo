@@ -13,29 +13,34 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 
+import retrofit.Callback;
+import retrofit.RestAdapter;
+import retrofit.RetrofitError;
+import retrofit.client.Response;
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.ContactsContract.Profile;
-import android.text.InputType;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
-public class MainActivity extends Activity {
+import com.example.gcmdemo.model.User;
+
+import com.example.gcmdemo.ContactsInterface;
+
+public class MainActivity extends Activity implements Callback<List<User>> {
 	static final String SENDER_ID = "737133065087";
 
 	SharedPreferences sp;
@@ -45,14 +50,19 @@ public class MainActivity extends Activity {
 	ListView mMessageList;
 	private BroadcastReceiver receiver;
 
-
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.fragment_main);
-		sp = getSharedPreferences(getPackageName(), Context.MODE_PRIVATE);
-		
+		RestAdapter restAdapter = new RestAdapter.Builder().setEndpoint(
+				"http://192.168.63.175:3000").build();
 
+		ContactsInterface contacts = restAdapter
+				.create(ContactsInterface.class);
+
+		contacts.contacts(this);
+
+		sp = getSharedPreferences(getPackageName(), Context.MODE_PRIVATE);
 		if (!sp.contains(Consts.NAME)) {
 
 			newName();
@@ -77,30 +87,29 @@ public class MainActivity extends Activity {
 		mMessage = (EditText) findViewById(R.id.message);
 
 	}
-	@Override
-	protected void onResume() {
-		super.onResume();
-		
-		
-	}
-	public String [] getContacts(){
-		new AsyncTask<Void,Void,Void>(){
 
-			@Override
-			protected Void doInBackground(Void... arg0) {
-				// TODO Auto-generated method stub
-				return null;
-			}
-			
-			
-			
-		};
-		
-		
-		
-		
-		return null;
+	@Override
+	public void failure(RetrofitError exception) {
+		Toast.makeText(this, exception.getMessage(), Toast.LENGTH_LONG).show();
 	}
+
+	@Override
+	public void success(List<User> c, Response r) {
+		List<String> names = new ArrayList<String>();
+		for (int i = 0; i < c.size(); i++) {
+			String name = c.get(i).toString();
+
+			Log.d("Names", "" + name);
+			names.add(name);
+		}
+
+		ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<String>(this,
+				android.R.layout.simple_spinner_item, names);
+
+		mSentTo.setAdapter(spinnerAdapter);
+
+	}
+
 	public void onSend(View v) {
 
 		new AsyncTask<Void, Void, Void>() {
@@ -152,7 +161,6 @@ public class MainActivity extends Activity {
 		// Create a new HttpClient and Post Header
 
 	}
-	
 
 	private void newName() {
 		final String[] SELF_PROJECTION = new String[] { Phone._ID,
@@ -162,9 +170,28 @@ public class MainActivity extends Activity {
 		cursor.moveToFirst();
 		String name = cursor.getString(1);
 		sp.edit().putString(Consts.NAME, name).commit();
-		Log.d("NAME",name);
-		
-		
+		Log.d("NAME", name);
+
+	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+
+		// Inflate the menu; this adds items to the action bar if it is present.
+		getMenuInflater().inflate(R.menu.main, menu);
+		return true;
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		// Handle action bar item clicks here. The action bar will
+		// automatically handle clicks on the Home/Up button, so long
+		// as you specify a parent activity in AndroidManifest.xml.
+		int id = item.getItemId();
+		if (id == R.id.action_settings) {
+			return true;
+		}
+		return super.onOptionsItemSelected(item);
 	}
 
 	private static class RegisterTask extends
@@ -177,11 +204,6 @@ public class MainActivity extends Activity {
 
 			sp = context.getSharedPreferences(context.getPackageName(),
 					Context.MODE_PRIVATE);
-		}
-
-		@Override
-		protected void onPreExecute() {
-
 		}
 
 		@Override
@@ -208,7 +230,7 @@ public class MainActivity extends Activity {
 
 				// Execute HTTP Post Request
 				HttpResponse response = httpclient.execute(httppost);
-				
+
 				Log.d("status", "" + response.getStatusLine().getStatusCode());
 
 			} catch (ClientProtocolException e) {
@@ -219,24 +241,7 @@ public class MainActivity extends Activity {
 
 	}
 
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
 
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.main, menu);
-		return true;
-	}
 
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		// Handle action bar item clicks here. The action bar will
-		// automatically handle clicks on the Home/Up button, so long
-		// as you specify a parent activity in AndroidManifest.xml.
-		int id = item.getItemId();
-		if (id == R.id.action_settings) {
-			return true;
-		}
-		return super.onOptionsItemSelected(item);
-	}
 
 }

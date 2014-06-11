@@ -7,10 +7,10 @@
      <string name="prompt">Send to: </string>
     <string name="title_activity_message">MessageActivity</string>
     
-     <string-array name="user_arrays">
+<!--      <string-array name="user_arrays">
         <item>jezer</item>
         <item>emulator</item>
   
-    </string-array>
+    </string-array> -->
 
 </resources>
