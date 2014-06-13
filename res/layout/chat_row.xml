@@ -26,12 +26,12 @@
         android:textColor="#3366FF" />
 
     <TextView
-        android:id="@+id/dateTV"
+        android:id="@+id/toTV"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_above="@+id/messageTV"
         android:layout_alignParentRight="true"
-        android:text="a min ago" />
+        android:text="" />
 
     <TextView
         android:id="@+id/messageTV"

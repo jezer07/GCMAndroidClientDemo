@@ -25,6 +25,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
@@ -36,8 +37,10 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.EditText;
@@ -59,7 +62,7 @@ public class MainActivity extends Activity implements Callback<List<User>> {
 	EditText mMessage;
 	String mName;
 	ListView mMessageListView;
-	
+	List<String> mContacts;
 	
 	List<PushMessage> mPushList;
 	
@@ -79,6 +82,7 @@ public class MainActivity extends Activity implements Callback<List<User>> {
 		setContentView(R.layout.activity_main);
 		sp = getSharedPreferences(getPackageName(), Context.MODE_PRIVATE);
 		mPushList = new ArrayList<PushMessage>();
+		mContacts = new ArrayList<String>();
 		
 		mMessageListView = (ListView)findViewById(R.id.listView1);
 		PushAdapter pa = new PushAdapter(this, mPushList);
@@ -121,6 +125,8 @@ public class MainActivity extends Activity implements Callback<List<User>> {
 			public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
 				if (actionId == EditorInfo.IME_ACTION_DONE) {
                    onSend();
+                   InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                   imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
                     return true;
                 }
 				
@@ -128,6 +134,8 @@ public class MainActivity extends Activity implements Callback<List<User>> {
 			}
 		});
 
+
+	
 	}
 	
 	
@@ -140,6 +148,8 @@ public class MainActivity extends Activity implements Callback<List<User>> {
 			@Override
 			public void onReceive(Context c, Intent i) {
 				Bundle bundle = i.getExtras();
+				
+				
 				String message = bundle.getString("msg");
 				String from = bundle.getString("sender");
 				String type = bundle.getString("type");
@@ -147,11 +157,11 @@ public class MainActivity extends Activity implements Callback<List<User>> {
 				String time = (String) DateUtils.getRelativeTimeSpanString(cal.getTimeInMillis());
 				Log.d("time",time);
 				Log.d("type",type);
-				PushMessage p = new PushMessage(message,from,type,time);				
+				PushMessage p = new PushMessage(message,from,type,null);				
 				mPushList.add(0,p);
 				
 				//Collections.reverse(mPushList);
-				((BaseAdapter) mMessageListView.getAdapter()).notifyDataSetChanged(); 
+				 refreshMessages(); 
 				
 				
 			}
@@ -169,16 +179,16 @@ public class MainActivity extends Activity implements Callback<List<User>> {
 	// Overridden from CallBack<T>
 	@Override
 	public void success(List<User> c, Response r) {
-		List<String> names = new ArrayList<String>();
+	
 		for (int i = 0; i < c.size(); i++) {
 			String name = c.get(i).toString();
 			Log.d("Names", "" + name);
-			names.add(name);
+			mContacts.add(name);
 		}
-		names.add("All");
+		mContacts.add("All");
 
 		ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<String>(this,
-				android.R.layout.simple_spinner_item, names);
+				android.R.layout.simple_spinner_item, mContacts);
 		mSentTo.setAdapter(spinnerAdapter);
 
 	}
@@ -197,6 +207,16 @@ public class MainActivity extends Activity implements Callback<List<User>> {
 						.show();
 				Log.d("values", "name =  " + sendTo);
 				Log.d("values", "message =  " + message);
+				String type= null;
+				if(sendTo.equalsIgnoreCase("All")){
+					type = "broadcast";
+				}else type = "whisper";
+					
+				PushMessage sentMessage = new PushMessage(message,
+						mName,type,sendTo);
+				mPushList.add(0,sentMessage);
+				 refreshMessages();
+				
 			};
 
 			@Override
@@ -219,21 +239,32 @@ public class MainActivity extends Activity implements Callback<List<User>> {
 
 					// Execute HTTP Post Request
 					HttpResponse response = httpclient.execute(httppost);
+		
+				
 
 				} catch (ClientProtocolException e) {
 					// TODO Auto-generated catch block
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 				}
+			
+				
 				return null;
 			}
+			protected void onPostExecute(Void result) {
+	
+			}
+
+		
 
 		}.execute();
 
 		// Create a new HttpClient and Post Header
 
 	}
-
+	private void refreshMessages() {
+		((BaseAdapter) mMessageListView.getAdapter()).notifyDataSetChanged();
+	};
 	private void newName() {
 		final String[] SELF_PROJECTION = new String[] { Phone._ID,
 				Phone.DISPLAY_NAME, };
@@ -260,9 +291,22 @@ public class MainActivity extends Activity implements Callback<List<User>> {
 		// automatically handle clicks on the Home/Up button, so long
 		// as you specify a parent activity in AndroidManifest.xml.
 		int id = item.getItemId();
-		if (id == R.id.action_settings) {
+		if (id == R.id.clear) {
+			mPushList.clear();
+			refreshMessages();
+			
+			
+			return true;
+		}else if(id == R.id.refresh_contacts){
+			mContacts.clear();
+			RestAdapter restAdapter = new RestAdapter.Builder().setEndpoint(
+					"http://192.168.63.175:3000").build();
+			ContactsInterface contacts = restAdapter.create(ContactsInterface.class);
+			contacts.contacts(this);
 			return true;
 		}
+		
+		
 		return super.onOptionsItemSelected(item);
 	}
 
@@ -317,10 +361,15 @@ public class MainActivity extends Activity implements Callback<List<User>> {
 
 		List<PushMessage> _pushList;
 		Context c;
+		SharedPreferences sp;
+		String name;
+		
 		public PushAdapter(Context context, List<PushMessage> values) {
 			super(context, R.layout.chat_row,values);
 			_pushList = values;
 			c = context;
+			sp = context.getSharedPreferences(context.getPackageName(), Context.MODE_PRIVATE);
+			name = sp.getString(Consts.NAME, null);
 		}
 		
 		@Override
@@ -331,24 +380,32 @@ public class MainActivity extends Activity implements Callback<List<User>> {
 		    }
 			TextView from = (TextView)convertView.findViewById(R.id.fromTV);
 			TextView message = (TextView)convertView.findViewById(R.id.messageTV);
-			TextView time = (TextView)convertView.findViewById(R.id.dateTV);
+			TextView to = (TextView)convertView.findViewById(R.id.toTV);
 			ImageView view = (ImageView)convertView.findViewById(R.id.chat_icon);
 			
-			
+			convertView.setBackgroundColor(Color.WHITE);
 			if(_pushList.get(position).getType().equals("broadcast")){
-				view.setImageResource(R.drawable.megaphone);
+				view.setImageResource(R.drawable.ic_action_group);
 			}else
-				view.setImageResource(R.drawable.tincan);
+				view.setImageResource(R.drawable.ic_action_person);
 			
-			
-			time.setText(_pushList.get(position).getTime());
-			from.setText(_pushList.get(position).getFrom());
+			if(_pushList.get(position).getFrom().equals(name)){
+				
+				from.setText("me");
+				if(_pushList.get(position).getTo()!=null){
+							
+					to.setText("To: "+_pushList.get(position).getTo());
+				}else{
+					to.setText("");
+				
+				}
+			}else{
+				from.setText(_pushList.get(position).getFrom());
+				Log.d("compare",name+" = "+ _pushList.get(position).getFrom());
+		
+			}
+	
 			message.setText(_pushList.get(position).getMessage());
-			
-			
-			
-			
-			
 			
 			return convertView;
 		}

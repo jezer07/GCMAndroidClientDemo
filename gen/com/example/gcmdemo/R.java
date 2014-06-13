@@ -1451,15 +1451,17 @@ containing a value of this type.
         public static final int common_signin_btn_text_normal_light=0x7f02006c;
         public static final int common_signin_btn_text_pressed_dark=0x7f02006d;
         public static final int common_signin_btn_text_pressed_light=0x7f02006e;
-        public static final int ic_launcher=0x7f02006f;
-        public static final int ic_plusone_medium_off_client=0x7f020070;
-        public static final int ic_plusone_small_off_client=0x7f020071;
-        public static final int ic_plusone_standard_off_client=0x7f020072;
-        public static final int ic_plusone_tall_off_client=0x7f020073;
-        public static final int megaphone=0x7f020074;
-        public static final int powered_by_google_dark=0x7f020075;
-        public static final int powered_by_google_light=0x7f020076;
-        public static final int tincan=0x7f020077;
+        public static final int ic_action_group=0x7f02006f;
+        public static final int ic_action_person=0x7f020070;
+        public static final int ic_launcher=0x7f020071;
+        public static final int ic_plusone_medium_off_client=0x7f020072;
+        public static final int ic_plusone_small_off_client=0x7f020073;
+        public static final int ic_plusone_standard_off_client=0x7f020074;
+        public static final int ic_plusone_tall_off_client=0x7f020075;
+        public static final int megaphone=0x7f020076;
+        public static final int powered_by_google_dark=0x7f020077;
+        public static final int powered_by_google_light=0x7f020078;
+        public static final int tincan=0x7f020079;
     }
     public static final class id {
         public static final int RelativeLayout1=0x7f070057;
@@ -1475,7 +1477,7 @@ containing a value of this type.
         public static final int action_menu_divider=0x7f070028;
         public static final int action_menu_presenter=0x7f070029;
         public static final int action_mode_close_button=0x7f070036;
-        public static final int action_settings=0x7f07005d;
+        public static final int action_settings=0x7f07005f;
         public static final int activity_chooser_view_content=0x7f070037;
         public static final int always=0x7f07001e;
         public static final int beginning=0x7f070023;
@@ -1487,9 +1489,9 @@ containing a value of this type.
         public static final int chat_icon=0x7f070052;
         public static final int checkbox=0x7f07003f;
         public static final int classic=0x7f070011;
+        public static final int clear=0x7f07005e;
         public static final int collapseActionView=0x7f070020;
         public static final int container=0x7f07004e;
-        public static final int dateTV=0x7f070055;
         public static final int default_activity_button=0x7f07003a;
         public static final int dialog=0x7f070021;
         public static final int disableHome=0x7f07001b;
@@ -1525,6 +1527,7 @@ containing a value of this type.
         public static final int progress_circular=0x7f07002a;
         public static final int progress_horizontal=0x7f07002b;
         public static final int radio=0x7f070041;
+        public static final int refresh_contacts=0x7f07005d;
         public static final int sandbox=0x7f070008;
         public static final int satellite=0x7f070002;
         public static final int search_badge=0x7f070044;
@@ -1551,6 +1554,7 @@ containing a value of this type.
         public static final int textView1=0x7f07005b;
         public static final int textView2=0x7f070059;
         public static final int title=0x7f07003d;
+        public static final int toTV=0x7f070055;
         public static final int top_action_bar=0x7f070032;
         public static final int up=0x7f070033;
         public static final int useLogo=0x7f070016;

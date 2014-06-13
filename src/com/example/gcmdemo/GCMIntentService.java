@@ -24,8 +24,11 @@ public class GCMIntentService extends GCMBaseIntentServiceCompat {
 	@Override
 	protected void onMessage(Intent message) {
 		dumpEvent("onMessage", message);
+		
+		
 
 		Bundle extras = message.getExtras();
+		
 		//For MainActivity Broadcast Intent
 		Intent broadcastIntent = new Intent();
 		broadcastIntent.setAction(MainActivity.MESSAGE_SENT_ACTION);
@@ -54,8 +57,9 @@ public class GCMIntentService extends GCMBaseIntentServiceCompat {
 		NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 
 		notificationManager.notify(0, n);
+		}
 
-	}
+	
 
 	@Override
 	protected void onError(Intent message) {

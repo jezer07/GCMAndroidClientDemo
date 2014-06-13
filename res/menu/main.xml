@@ -3,10 +3,16 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="com.example.gcmdemo.MainActivity" >
 
-    <item
-        android:id="@+id/action_settings"
-        android:orderInCategory="100"
-        android:title="@string/action_settings"
-        app:showAsAction="never"/>
+
+        <item
+        android:id="@+id/refresh_contacts"
+        android:title="Refresh Contacts"
+/>
+        
+        <item
+        android:id="@+id/clear"
+        android:title="Clear Messages"
+        
+        />
 
 </menu>
