@@ -22,10 +22,6 @@ public class MessageActivity extends ActionBarActivity {
 		
 		mMessage.setText("To: "+i.getExtras().getString("sender")+"\nMessage: "+i.getExtras().getString("msg"));
 		
-		
-		
-		
-
 	}
 
 	@Override

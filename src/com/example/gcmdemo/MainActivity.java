@@ -26,21 +26,20 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.ContactsContract.Profile;
 import android.text.format.DateUtils;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import android.view.inputmethod.EditorInfo;
-import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.EditText;
@@ -48,7 +47,6 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.TextView.OnEditorActionListener;
 import android.widget.Toast;
 
 import com.example.gcmdemo.model.PushMessage;
@@ -56,6 +54,7 @@ import com.example.gcmdemo.model.User;
 
 public class MainActivity extends Activity implements Callback<List<User>> {
 	static final String SENDER_ID = "737133065087";
+	static final String WEB_SERVER_ADDRESS = "http://192.168.1.100:3000";
 
 	SharedPreferences sp;
 	Spinner mSentTo;
@@ -88,10 +87,25 @@ public class MainActivity extends Activity implements Callback<List<User>> {
 		PushAdapter pa = new PushAdapter(this, mPushList);
 		
 		mMessageListView.setAdapter(pa);
+		mMessageListView.setEmptyView(findViewById(R.id.empty));
 		
+		mMessageListView.setOnItemClickListener(new OnItemClickListener()
+		{
+		    @Override 
+		    public void onItemClick(AdapterView<?> arg0, View arg1,int position, long arg3)
+		    {
+		    	String from = mPushList.get(position).getFrom();
+		    	
+		
+		    			int tappedContact = mContacts.indexOf(from);
+		    			mSentTo.setSelection(tappedContact);
+		    		
+		    	
+		    }
+		});
 		
 		RestAdapter restAdapter = new RestAdapter.Builder().setEndpoint(
-				"http://192.168.63.175:3000").build();
+				WEB_SERVER_ADDRESS).build();
 		ContactsInterface contacts = restAdapter.create(ContactsInterface.class);
 		contacts.contacts(this);
 
@@ -118,10 +132,12 @@ public class MainActivity extends Activity implements Callback<List<User>> {
 		}
 
 		mSentTo = (Spinner) findViewById(R.id.spinner1);
+	
+
 		mMessage = (EditText) findViewById(R.id.message);
-		mMessage.setOnEditorActionListener(new OnEditorActionListener() {
+		//mMessage.setOnEditorActionListener(new OnEditorActionListener() {
 			
-			@Override
+/*			@Override
 			public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
 				if (actionId == EditorInfo.IME_ACTION_DONE) {
                    onSend();
@@ -132,23 +148,14 @@ public class MainActivity extends Activity implements Callback<List<User>> {
 				
 				return false;
 			}
-		});
+		});*/
 
-
-	
-	}
-	
-	
-	
-	@Override
-	protected void onResume() {
-		super.onResume();
-		mPushReceiver = new BroadcastReceiver(){
+			mPushReceiver = new BroadcastReceiver(){
 			
 			@Override
 			public void onReceive(Context c, Intent i) {
 				Bundle bundle = i.getExtras();
-				
+				Log.d("Touch","I'm Tickled");
 				
 				String message = bundle.getString("msg");
 				String from = bundle.getString("sender");
@@ -157,10 +164,10 @@ public class MainActivity extends Activity implements Callback<List<User>> {
 				String time = (String) DateUtils.getRelativeTimeSpanString(cal.getTimeInMillis());
 				Log.d("time",time);
 				Log.d("type",type);
+			
 				PushMessage p = new PushMessage(message,from,type,null);				
 				mPushList.add(0,p);
-				
-				//Collections.reverse(mPushList);
+		
 				 refreshMessages(); 
 				
 				
@@ -169,6 +176,15 @@ public class MainActivity extends Activity implements Callback<List<User>> {
 		};
 		
 		registerReceiver(mPushReceiver, new IntentFilter(MESSAGE_SENT_ACTION));
+	
+	}
+	
+	
+	
+	@Override
+	protected void onResume() {
+		super.onResume();
+		
 	}
 	// Overridden from CallBack<T>
 	@Override
@@ -193,8 +209,8 @@ public class MainActivity extends Activity implements Callback<List<User>> {
 
 	}
 	
-	public void onSend() {
-
+	public void onSend(View v) {
+	
 		new AsyncTask<Void, Void, Void>() {
 			String sendTo;
 			String message;
@@ -203,6 +219,12 @@ public class MainActivity extends Activity implements Callback<List<User>> {
 
 				sendTo = mSentTo.getSelectedItem().toString();			
 				message = mMessage.getText().toString();
+				if(message.equals("")|| message.equals(null)){
+					Toast.makeText(MainActivity.this, "Please enter a message", Toast.LENGTH_SHORT)
+					.show();
+					return;
+				}
+				
 				Toast.makeText(MainActivity.this, "Sending", Toast.LENGTH_SHORT)
 						.show();
 				Log.d("values", "name =  " + sendTo);
@@ -216,6 +238,9 @@ public class MainActivity extends Activity implements Callback<List<User>> {
 						mName,type,sendTo);
 				mPushList.add(0,sentMessage);
 				 refreshMessages();
+				 
+				 
+				 
 				
 			};
 
@@ -223,7 +248,7 @@ public class MainActivity extends Activity implements Callback<List<User>> {
 			protected Void doInBackground(Void... params) {
 				HttpClient httpclient = new DefaultHttpClient();
 				HttpPost httppost = new HttpPost(
-						"http://192.168.63.175:3000/message/send_push/");
+						WEB_SERVER_ADDRESS+"/message/send_push/");
 
 				try {
 					// Add your data
@@ -252,7 +277,7 @@ public class MainActivity extends Activity implements Callback<List<User>> {
 				return null;
 			}
 			protected void onPostExecute(Void result) {
-	
+				
 			}
 
 		
@@ -260,7 +285,7 @@ public class MainActivity extends Activity implements Callback<List<User>> {
 		}.execute();
 
 		// Create a new HttpClient and Post Header
-
+		mMessage.setText("");
 	}
 	private void refreshMessages() {
 		((BaseAdapter) mMessageListView.getAdapter()).notifyDataSetChanged();
@@ -300,7 +325,7 @@ public class MainActivity extends Activity implements Callback<List<User>> {
 		}else if(id == R.id.refresh_contacts){
 			mContacts.clear();
 			RestAdapter restAdapter = new RestAdapter.Builder().setEndpoint(
-					"http://192.168.63.175:3000").build();
+					WEB_SERVER_ADDRESS).build();
 			ContactsInterface contacts = restAdapter.create(ContactsInterface.class);
 			contacts.contacts(this);
 			return true;
@@ -331,7 +356,7 @@ public class MainActivity extends Activity implements Callback<List<User>> {
 		protected void sendRegistrationIdToServer(String regid) {
 			HttpClient httpclient = new DefaultHttpClient();
 			HttpPost httppost = new HttpPost(
-					"http://192.168.63.175:3000/users/");
+					WEB_SERVER_ADDRESS+"/users/");
 			String name = sp.getString(Consts.NAME, null);
 
 			try {
@@ -374,15 +399,18 @@ public class MainActivity extends Activity implements Callback<List<User>> {
 		
 		@Override
 		public View getView(int position, View convertView, ViewGroup parent) {
-			if (convertView == null) {
+		
 		        convertView = LayoutInflater.from(c)
 		          .inflate(R.layout.chat_row, parent, false);
-		    }
+		    
+			
+			
+	
 			TextView from = (TextView)convertView.findViewById(R.id.fromTV);
 			TextView message = (TextView)convertView.findViewById(R.id.messageTV);
 			TextView to = (TextView)convertView.findViewById(R.id.toTV);
 			ImageView view = (ImageView)convertView.findViewById(R.id.chat_icon);
-			
+			message.setText(_pushList.get(position).getMessage());
 			convertView.setBackgroundColor(Color.WHITE);
 			if(_pushList.get(position).getType().equals("broadcast")){
 				view.setImageResource(R.drawable.ic_action_group);
@@ -401,11 +429,12 @@ public class MainActivity extends Activity implements Callback<List<User>> {
 				}
 			}else{
 				from.setText(_pushList.get(position).getFrom());
+				message.setTypeface(null, Typeface.BOLD);
 				Log.d("compare",name+" = "+ _pushList.get(position).getFrom());
 		
 			}
 	
-			message.setText(_pushList.get(position).getMessage());
+	
 			
 			return convertView;
 		}

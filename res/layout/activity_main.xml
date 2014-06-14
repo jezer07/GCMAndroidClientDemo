@@ -4,40 +4,82 @@
     android:id="@+id/container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:background="#ECECF2"
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.example.gcmdemo.MainActivity" >
+
+    <ListView
+        android:id="@+id/listView1"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_above="@+id/button1"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/spinner1"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:transcriptMode="normal" >
+    </ListView>
+
+    <TextView
+        android:id="@+id/empty"
+        style="@android:style/TextAppearance.Large"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:gravity="center"
+        android:text="You have no messages yet" >
+    </TextView>
+
+    <View
+        android:id="@+id/View1"
+        android:layout_width="fill_parent"
+        android:layout_height="1dp"
+        android:layout_above="@+id/message"
+        android:layout_marginBottom="4dp"
+        android:background="@android:color/darker_gray" />
 
     <EditText
         android:id="@+id/message"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android1:layout_alignParentLeft="true"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_marginBottom="2dp"
+        android:layout_marginLeft="2dp"
+        android:layout_toLeftOf="@+id/button1"
+        android:background="@drawable/rounded_edt"
         android:ems="10"
         android:hint="Type a message here"
         android:imeOptions="actionDone"
-        android:inputType="text" />
+        android:inputType="text"
+        android:padding="8dp" >
 
-    <ListView
-        android:id="@+id/listView1"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/message"
-        android:layout_marginTop="10dp"
-        android:layout_centerHorizontal="true"
-        android:stackFromBottom="true"
-        android:transcriptMode="normal" >
-    </ListView>
+        <requestFocus />
+    </EditText>
+
+    <ImageView
+        android:id="@+id/button1"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:onClick="onSend"
+        android:src="@drawable/ic_send"
+        android:text="Button" />
+
+    <TextView
+        android1:id="@+id/textView1"
+        android1:layout_width="wrap_content"
+        android1:layout_height="wrap_content"
+        android:layout_marginLeft="4dp"
+        android1:layout_alignParentLeft="true"
+        android1:layout_alignParentTop="true"
+        android1:text="To: " />
 
     <Spinner
-        android:id="@+id/spinner1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_marginTop="4dp"
-        android:layout_toRightOf="@+id/message" />
+        android1:id="@+id/spinner1"
+        android1:layout_width="match_parent"
+        android1:layout_height="wrap_content"
+        android1:layout_alignParentTop="true"
+        android1:layout_toRightOf="@+id/textView1" />
 
 </RelativeLayout>
